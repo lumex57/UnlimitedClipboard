@@ -2,12 +2,19 @@ import rumps
 import threading
 import pyperclip
 import time
+from rumps import *
 
-clipboard = []
-running = True
-check_delay = 0.2
 
 class UnlimitedClipboards(rumps.App):
+    def __init__(self):
+        super().__init__("ww")
+        self.clipboard = []
+        self.running = True
+        self.check_delay = 0.2
+        self.menu = ['Clear All Copies']
+        threading.Thread(target=self.runClipboardWatcher, daemon=True).start()
+
+
     @rumps.clicked("Clear All Copies")
     def clearAllCopies(self, _):
         response = rumps.alert(
@@ -20,25 +27,27 @@ class UnlimitedClipboards(rumps.App):
         if response == 1:
             print("clicked yes")
 
-def runClipboardWatcher():
-    while running:
-        text = pyperclip.paste()
-        print(text)
+    def runClipboardWatcher(self):
+        lst = ""
+        while self.running:
+            try:
+                text = pyperclip.paste()
+                if text != lst and text.strip() != "":
+                    lst = text
+                    self.clipboard.append(text)
+                    self.menu.add(text)
+            except:
+                print('idc')
 
-        if text:
-            if not clipboard or clipboard[-1] != text:
-                clipboard.append(text)
-            else:
-                print('마지막으로 복사한것과 같다.')
-
-        else:
-            print('클립보드가 비어있ㅇ음.')
-
-        print(clipboard)
-        time.sleep(check_delay)
+            print(self.clipboard)
+            time.sleep(self.check_delay)
+    
+    @rumps.clicked('Clear All Copies')
+    def clear_all(self, _):
+        self.clipboard.clear()
+        self.menu.clear()
+        self.menu.add("Clear All Copies")
+        rumps.alert("Done.")
 
 if __name__ == "__main__":
-    clipboardWatcher = threading.Thread(target=runClipboardWatcher, daemon=True)
-    clipboardWatcher.start()
-
-    UnlimitedClipboards("UC").run()
+    UnlimitedClipboards().run()
