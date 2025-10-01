@@ -1,5 +1,6 @@
 import rumps
 import threading
+import pyperclip
 
 clipboard = []
 running = True
@@ -19,7 +20,9 @@ class UnlimitedClipboards(rumps.App):
 
 def runClipboardWatcher():
     while running:
-        print('ss')
+        text = pyperclip.paste()
+        print(text)
+        
 
 # app = threading.Thread(target=runApp)
 # clipboardWatcher = threading.Thread(target=runClipboardWatcher)
